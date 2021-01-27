@@ -9,7 +9,8 @@ def crawl_and_parse(url):
 
     for entry in parser_result.entries:
         if not all((
-            entry.get('title'), entry.get('link'), entry.get('summary')
+                entry.get('title'), entry.get('link'),
+                entry.get('summary'), entry.get('published_parsed')
         )):
             # entry has no useful information, so we ignore it
             continue

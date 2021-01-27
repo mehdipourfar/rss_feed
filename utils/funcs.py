@@ -1,3 +1,4 @@
+import calendar
 import datetime
 import time
 
@@ -9,6 +10,17 @@ def time_struct_to_timestamptz(time_struct):
     t = time.mktime(time_struct)
     dt = datetime.datetime.fromtimestamp(t)
     return timezone.make_aware(dt)
+
+
+def unix_timestamp(timestamp, milisecond=True):
+    if hasattr(timestamp, 'timestamp'):
+        timestamp = timestamp.timestamp()
+    else:
+        timestamp = calendar.timegm(timestamp.timetuple())
+
+    if milisecond:
+        timestamp *= 1000
+    return int(timestamp)
 
 
 def run_task(task, **kwargs):
