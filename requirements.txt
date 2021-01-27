@@ -7,3 +7,4 @@ jedi==0.17.2
 Pillow==8.1.0
 psycopg2-binary==2.8.6
 django-filter==2.4.0
+feedparser==6.0.2
