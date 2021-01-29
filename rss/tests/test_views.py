@@ -65,6 +65,18 @@ class ChannelViewSetTestCase(APITestCase):
         response = self.client.get(channel_api)
         self.assertFalse(response.json()['subscribed'])
 
+    def test_subscribed_channels_filter(self):
+        user = UserFactory()
+        self.client.force_authenticate(user=user)
+        channels = [ChannelFactory() for i in range(3)]
+        channels[0].subscribers.add(user)
+        response = self.client.get('/api/channels/')
+        self.assertEqual(response.json()['count'], 3)
+        response = self.client.get('/api/channels/?subscribed=true')
+        self.assertEqual(response.json()['count'], 1)
+        response = self.client.get('/api/channels/?subscribed=false')
+        self.assertEqual(response.json()['count'], 2)
+
     def test_unread_entries_count(self):
         channel = ChannelFactory()
         channel_api = f'/api/channels/{channel.id}/'

@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 
+import os
 from pathlib import Path
 import sys
 
@@ -157,4 +158,5 @@ REST_FRAMEWORK = {
 AUTH_USER_MODEL = 'user.User'
 
 TEST_IS_RUNNING = 'test' in sys.argv
-CHANNELS_REFRESH_INTERVAL = 60  # in minutes
+
+CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', 'redis://127.0.0.1:6379/1')

@@ -76,3 +76,7 @@ class CommentSerializer(serializers.ModelSerializer):
 
     def get_created_at(self, obj):
         return unix_timestamp(obj.created_at)
+
+
+class LinkSerializer(serializers.Serializer):
+    link = serializers.URLField()

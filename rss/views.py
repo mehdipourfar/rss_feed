@@ -3,19 +3,26 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from .models import Channel, Entry, Comment
-from .serializers import ChannelSerializer, EntrySerializer, CommentSerializer
-from .filters import EntryFilter
+from .serializers import (
+    LinkSerializer,
+    ChannelSerializer,
+    EntrySerializer,
+    CommentSerializer
+)
+from .filters import ChannelFilter, EntryFilter
+from .tasks import update_channel
+from utils.funcs import run_task
 
 
 class ChannelViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = ChannelSerializer
+    filter_class = ChannelFilter
 
     def get_queryset(self):
-        return Channel.objects.annotate_subscribed(
-            user=self.request.user
-        ).annotate_unread_entries_count(
-            user=self.request.user
-        )
+        user = self.request.user
+        return (Channel.objects
+                .annotate_subscribed(user)
+                .annotate_unread_entries_count(user))
 
     @action(methods=['POST'], detail=True)
     def subscribe(self, request, pk):
@@ -29,17 +36,35 @@ class ChannelViewSet(viewsets.ReadOnlyModelViewSet):
         channel.subscribers.remove(request.user)
         return Response(status=204)
 
+    @action(methods=['POST'], detail=True)
+    def update_entries(self, request, pk):
+        channel = self.get_object()
+        run_task(update_channel, channel_id=channel.id)
+        return Response(status=204)
+
+    @action(methods=['POST'], detail=False)
+    def register_channel(self, request):
+        serializer = LinkSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=400)
+
+        channel, _ = Channel.objects.get_or_create(
+            link=serializer.data['link']
+        )
+        serializer = ChannelSerializer(Channel)
+        run_task(update_channel, channel_id=channel.id)
+        return Response(serializer.data)
+
 
 class EntryViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = EntrySerializer
     filter_class = EntryFilter
 
     def get_queryset(self):
-        return Entry.objects.annotate_marked(
-            user=self.request.user
-        ).annotate_read(
-            user=self.request.user
-        )
+        user = self.request.user
+        return (Entry.objects
+                .annotate_marked(user)
+                .annotate_read(user))
 
     @action(methods=['POST'], detail=True)
     def read(self, request, pk):
