@@ -1,4 +1,4 @@
-# Rss Fedd
+# Rss Feed
 
 Rss feed reader powered by django and celery.
 
