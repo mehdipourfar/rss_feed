@@ -51,7 +51,7 @@ class ChannelViewSet(viewsets.ReadOnlyModelViewSet):
         channel, _ = Channel.objects.get_or_create(
             link=serializer.data['link']
         )
-        serializer = ChannelSerializer(Channel)
+        serializer = ChannelSerializer(channel, context={'request': request})
         run_task(update_channel, channel_id=channel.id)
         return Response(serializer.data)
 

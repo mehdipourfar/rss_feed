@@ -22,10 +22,18 @@ class ChannelSerializer(serializers.ModelSerializer):
         )
 
     def get_subscribed(self, obj):
-        return obj.subscribed
+        if hasattr(obj, 'subscribed'):
+            return obj.subscribed
+        user = self.context['request'].user
+        return obj.subscribers.filter(id=user.id).exists()
 
     def get_unread_entries_count(self, obj):
-        return obj.unread_entries_count
+        if hasattr(obj, 'unread_entries_count'):
+            return obj.unread_entries_count
+        user = self.context['request'].user
+        return user.read_entries.filter(
+            channel_id=obj.id
+        ).count()
 
 
 class EntrySerializer(serializers.ModelSerializer):
@@ -53,10 +61,20 @@ class EntrySerializer(serializers.ModelSerializer):
         return unix_timestamp(obj.publish_date)
 
     def get_marked(self, obj):
-        return obj.marked
+        if hasattr(obj, 'marked'):
+            return obj.marked
+        user = self.context['request'].user
+        return user.marked_entries.filter(
+            entry=obj
+        ).exists()
 
     def get_read(self, obj):
-        return obj.read
+        if hasattr(obj, 'read'):
+            return obj.read
+        user = self.context['request'].user
+        return user.read_entries.filter(
+            entry=obj
+        ).exists()
 
 
 class CommentSerializer(serializers.ModelSerializer):

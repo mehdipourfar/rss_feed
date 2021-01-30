@@ -10,7 +10,7 @@ class Channel(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     title = models.CharField(max_length=200, blank=True)
     description = models.TextField(default='')
-    link = models.URLField()
+    link = models.URLField(max_length=500)
     image_url = models.URLField(default='', blank=True)
     subscribers = models.ManyToManyField(
         settings.AUTH_USER_MODEL,
@@ -39,7 +39,7 @@ class Entry(models.Model):
         related_name='entries',
     )
     title = models.CharField(max_length=500)
-    link = models.URLField(unique=True)
+    link = models.URLField(max_length=500, unique=True)
     description = models.TextField(default='')
     image_url = models.URLField(default='', blank=True)
     category = models.TextField(default='')

@@ -2,10 +2,22 @@ from rest_framework.test import APITestCase
 
 from user.tests.factories import UserFactory
 from .factories import ChannelFactory, EntryFactory
-from rss.models import Comment
+from rss.models import Comment, Entry
+from .mock_server import RSSMockServer
 
 
 class ChannelViewSetTestCase(APITestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.server = RSSMockServer()
+        cls.server.start()
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+        cls.server.shutdown()
+
     def test_list(self):
         channels_api = '/api/channels/'
 
@@ -98,6 +110,18 @@ class ChannelViewSetTestCase(APITestCase):
         self.client.force_authenticate(user=user_2)
         response = self.client.get(channel_api)
         self.assertEqual(response.json()['unread_entries_count'], 3)
+
+    def test_register_channel(self):
+        user = UserFactory()
+        self.client.force_authenticate(user)
+        response = self.client.post(
+            '/api/channels/register_channel/',
+            {'link': f'{self.server.address}/rss'}
+        )
+        self.assertEqual(response.status_code, 200)
+        channel_id = response.json()['id']
+        entries_count = Entry.objects.filter(channel_id=channel_id).count()
+        self.assertEqual(entries_count, 103)
 
 
 class EntryViewSetTestCase(APITestCase):
