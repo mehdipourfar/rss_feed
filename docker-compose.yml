@@ -1,0 +1,92 @@
+x-common-variables: &common-variables
+  POSTGRES_DB: rss_feed
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: postgres
+  POSTGRES_HOST: db
+  DJANGO_SETTINGS_MODULE: rss_feed.settings.production
+  CELERY_BROKER_URL: redis://redis:6379/1
+  STATIC_ROOT: /shared_dir/static
+
+services:
+  db:
+    image: postgres
+    container_name: rss_feed_postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_DB=rss_feed
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  redis:
+    image: redis
+    container_name: rss_feed_redis
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 1s
+      timeout: 3s
+      retries: 5
+  web:
+    build: .
+    command: sh docker-entrypoint.sh
+    container_name: rss_feed_server
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      <<: *common-variables
+    volumes:
+      - shared_dir:/shared_dir
+  nginx:
+    image: nginx:latest
+    container_name: rss_feed_nginx
+    ports:
+      - "1234:80"
+    volumes:
+      - shared_dir:/shared_dir
+      - ./deployment_conf/nginx:/etc/nginx/conf.d
+    depends_on:
+      - web
+
+  celery_worker:
+    build: .
+    command: celery -A rss_feed worker -l info
+    container_name: rss_feed_celery_worker
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      <<: *common-variables
+    volumes:
+      - shared_dir:/shared_dir
+
+  celery_beat:
+    build: .
+    command: celery -A rss_feed beat -l info
+    container_name: rss_feed_celery_beat
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      <<: *common-variables
+    volumes:
+      - shared_dir:/shared_dir
+
+volumes:
+  postgres_data:
+  shared_dir:
+
+networks:
+  main:

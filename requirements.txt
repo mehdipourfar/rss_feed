@@ -4,9 +4,9 @@ djangorestframework==3.12.2
 factory-boy==3.2.0
 ipython==7.19.0
 jedi==0.17.2
-Pillow==8.1.0
 psycopg2-binary==2.8.6
 django-filter==2.4.0
 feedparser==6.0.2
 celery==5.0.5
 redis==3.5.3
+gunicorn==20.0.4
