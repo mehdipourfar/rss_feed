@@ -21,7 +21,7 @@ docker-compose up --build --remove-orphans
  ```
 
 Other apis need authorization header. Use the token that you received from the api above in this format in header:
-'Authorization: Token mygreatetoken'
+`'Authorization: Token asfasfmiq231jr4j2942fkasf'`
 
 
 - Basic info of user
@@ -36,7 +36,7 @@ Other apis need authorization header. Use the token that you received from the a
   ```
 
 - List of channels:
-  Result of this api is paginated. You can move to pages by setting limit and offset as querystring.
+  Result of this api is paginated by `limit` and `offset` querystring.
   You can also set subscribed=true in querystring to filter subscribed channels.
 
   ```
@@ -58,7 +58,7 @@ Other apis need authorization header. Use the token that you received from the a
   /api/channels/{channel_id}/update_entries/
   ```
 
-- Getting entries for specific channel
+- Getting entries for an specific channel
   ```
   /api/entries/?channel_id={channel_id}
   ```
@@ -93,19 +93,18 @@ Other apis need authorization header. Use the token that you received from the a
   /api/entries/{entry_id}/unmark/  (POST)
   ```
 
-- Write comment on an entry
-  send {"body": "my great comment"} to this api
+- Write comment on an entry in `{"body": "my great comment"}` format
   ```
   /api/entries/{entry_id/comments/ (POST)
   ```
 
-- Get all of my comments on an entry
+- Get all of the users' comments on an entry
   send {"body": "my great comment"} to this api
   ```
   /api/entries/{entry_id/comments/ (GET)
   ```
 
-- Delete my comment
+- Delete a comment
   ```
   /api/entries/{entry_id/comments/{comment_id}/ (DELETE)
   ```
