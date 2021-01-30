@@ -16,7 +16,6 @@ class ChannelSerializer(serializers.ModelSerializer):
             'title',
             'description',
             'link',
-            'image_url',
             'subscribed',
             'unread_entries_count',
             'last_update',

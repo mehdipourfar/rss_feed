@@ -9,7 +9,6 @@ class Channel(models.Model):
     title = models.CharField(max_length=200, blank=True)
     description = models.TextField(default='')
     link = models.URLField(max_length=500)
-    image_url = models.URLField(default='', blank=True)
     subscribers = models.ManyToManyField(
         settings.AUTH_USER_MODEL,
         related_name='subscribed_channels',

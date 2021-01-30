@@ -42,7 +42,6 @@ class ChannelViewSetTestCase(APITestCase):
             'title',
             'description',
             'link',
-            'image_url',
             'subscribed',
             'unread_entries_count',
         ]
@@ -124,6 +123,10 @@ class ChannelViewSetTestCase(APITestCase):
         entries_count = channel.entries.count()
         self.assertEqual(entries_count, 103)
         self.assertIsNotNone(channel.last_update)
+        self.assertEqual(
+            channel.description,
+            'Latest international news, sport and comment from the Guardian'
+        )
 
 
 class EntryViewSetTestCase(APITestCase):

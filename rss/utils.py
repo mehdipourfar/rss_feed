@@ -5,7 +5,7 @@ from utils.funcs import time_struct_to_timestamptz
 
 def crawl_and_parse(url):
     parser_result = feedparser.parse(url)
-    items = []
+    entries = []
 
     for entry in parser_result.entries:
         if not all((
@@ -23,7 +23,7 @@ def crawl_and_parse(url):
         publish_date = time_struct_to_timestamptz(
             entry.get('published_parsed')
         )
-        items.append({
+        entries.append({
             'title': entry.get('title'),
             'link': entry.get('link'),
             'description': entry.get('summary'),
@@ -32,4 +32,16 @@ def crawl_and_parse(url):
             'image_url': image_url,
             'publish_date': publish_date,
         })
-    return items
+
+    last_update = time_struct_to_timestamptz(
+        parser_result['feed']['updated_parsed']
+    )
+    channel = {
+        'title': parser_result['feed']['title'],
+        'description': parser_result['feed']['subtitle'],
+        'last_update': last_update,
+    }
+    return {
+        'channel': channel,
+        'entries': entries,
+    }
