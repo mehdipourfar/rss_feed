@@ -1,5 +1,6 @@
 from rest_framework import viewsets
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
 from .models import Channel, Entry, Comment
@@ -66,6 +67,13 @@ class EntryViewSet(viewsets.ReadOnlyModelViewSet):
                 .annotate_marked(user)
                 .annotate_read(user))
 
+    def list(self, request, *args, **kwargs):
+        if 'channel_id' not in request.query_params:
+            raise ValidationError({
+                'error': 'channel_id querystring is required'
+            })
+        return super().list(request, *args, **kwargs)
+
     @action(methods=['POST'], detail=True)
     def read(self, request, pk):
         entry = self.get_object()
@@ -100,30 +108,3 @@ class CommentViewSet(viewsets.ModelViewSet):
             entry_id=self.kwargs.get('entry_id'),
             user=self.request.user,
         )
-
-    def create(self, request, *args, **kwargs):
-        data = {**request.data,
-                'user_id': request.user.id,
-                'entry_id': kwargs['entry_id']}
-        serializer = self.get_serializer(data=data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=201, headers=headers)
-
-    def update(self, request, *args, **kwargs):
-        data = {**request.data,
-                'user_id': request.user.id,
-                'entry_id': kwargs['entry_id']}
-        partial = kwargs.pop('partial', False)
-        instance = self.get_object()
-        serializer = self.get_serializer(instance, data=data, partial=partial)
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-
-        if getattr(instance, '_prefetched_objects_cache', None):
-            # If 'prefetch_related' has been applied to a queryset, we need to
-            # forcibly invalidate the prefetch cache on the instance.
-            instance._prefetched_objects_cache = {}
-
-        return Response(serializer.data)

@@ -80,21 +80,32 @@ class EntrySerializer(serializers.ModelSerializer):
 
 class CommentSerializer(serializers.ModelSerializer):
     created_at = serializers.SerializerMethodField()
-    entry_id = serializers.IntegerField(write_only=True)
-    user_id = serializers.IntegerField(write_only=True)
 
     class Meta:
         model = Comment
         fields = (
             'id',
-            'entry_id',
-            'user_id',
             'created_at',
             'body',
         )
 
     def get_created_at(self, obj):
         return unix_timestamp(obj.created_at)
+
+    def create(self, validated_data):
+        return super().create(
+            {**validated_data,
+             'user_id': self.context['request'].user.id,
+             'entry_id': self.context['view'].kwargs['entry_id']}
+        )
+
+    def update(self, instance, validated_data):
+        return super().update(
+            instance,
+            {**validated_data,
+             'user_id': self.context['request'].user.id,
+             'entry_id': self.context['view'].kwargs['entry_id']}
+        )
 
 
 class LinkSerializer(serializers.Serializer):

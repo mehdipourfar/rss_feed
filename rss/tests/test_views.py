@@ -142,8 +142,9 @@ class EntryViewSetTestCase(APITestCase):
         self.assertEqual(response.status_code, 401)
         self.client.force_authenticate(user=user)
         response = self.client.get('/api/entries/')
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()['count'], 6)
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json(),
+                         {'error': 'channel_id querystring is required'})
 
         response = self.client.get(f'/api/entries/?channel_id={channel_1.id}')
         data = response.json()
@@ -219,6 +220,7 @@ class EntryViewSetTestCase(APITestCase):
     def test_filters(self):
         user = UserFactory()
         self.client.force_authenticate(user=user)
+
         channel = ChannelFactory()
         entries = [EntryFactory(channel=channel) for i in range(5)]
         for entry in entries[:2]:
@@ -254,8 +256,15 @@ class CommentTestCase(APITestCase):
             f'/api/entries/{entry.id}/comments/{comment_id}/',
             {'body': 'ha ha'}
         )
+
         comment = Comment.objects.get()
         self.assertEqual(comment.body, 'ha ha')
+
+        response = self.client.get(
+            f'/api/entries/{entry.id}/comments/',
+            {'body': 'hey hey'}
+        )
+        self.assertEqual(response.json()['count'], 1)
 
         # test user only view his comments
         user_2 = UserFactory()
@@ -268,3 +277,18 @@ class CommentTestCase(APITestCase):
             {'body': 'hey hey'}
         )
         self.assertEqual(response.json()['count'], 1)
+
+        comment_id = Comment.objects.get(user=user).id
+        response = self.client.delete(
+            f'/api/entries/{entry.id}/comments/{comment_id}/',
+        )
+        self.assertEqual(response.status_code, 204)
+        self.assertEqual(Comment.objects.count(), 1)
+
+        # test user cannot update another one's comment
+        comment_id = Comment.objects.get(user=user_2).id
+        response = self.client.patch(
+            f'/api/entries/{entry.id}/comments/{comment_id}/',
+            {'body': 'ha ha'}
+        )
+        self.assertEqual(response.status_code, 404)
