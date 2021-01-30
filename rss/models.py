@@ -1,5 +1,3 @@
-from urllib.parse import urlparse
-
 from django.conf import settings
 from django.db import models
 from .querysets import ChannelQuerySet, EntryQuerySet
@@ -16,18 +14,13 @@ class Channel(models.Model):
         settings.AUTH_USER_MODEL,
         related_name='subscribed_channels',
     )
-
-    @property
-    def domain(self):
-        return urlparse(self.link).netloc
+    last_update = models.DateTimeField(
+        null=True,
+        blank=True
+    )
 
     def __str__(self):
         return self.title
-
-    def save(self, *args, **kwargs):
-        if not self.title:
-            self.title = self.domain
-        super().save(*args, **kwargs)
 
 
 class Entry(models.Model):

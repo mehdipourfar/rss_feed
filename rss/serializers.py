@@ -19,6 +19,7 @@ class ChannelSerializer(serializers.ModelSerializer):
             'image_url',
             'subscribed',
             'unread_entries_count',
+            'last_update',
         )
 
     def get_subscribed(self, obj):

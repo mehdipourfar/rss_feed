@@ -1,4 +1,5 @@
 from celery import shared_task
+from django.utils import timezone
 
 from .models import Channel, Entry
 from .feed import crawl_and_parse
@@ -18,3 +19,5 @@ def update_channel(channel_id):
     entries = [Entry(channel_id=channel_id, **result)
                for result in results]
     Entry.objects.bulk_create(entries, ignore_conflicts=True)
+    channel.last_update = timezone.now()
+    channel.save()

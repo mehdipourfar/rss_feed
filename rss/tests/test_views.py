@@ -2,7 +2,7 @@ from rest_framework.test import APITestCase
 
 from user.tests.factories import UserFactory
 from .factories import ChannelFactory, EntryFactory
-from rss.models import Comment, Entry
+from rss.models import Comment, Channel
 from .mock_server import RSSMockServer
 
 
@@ -120,8 +120,10 @@ class ChannelViewSetTestCase(APITestCase):
         )
         self.assertEqual(response.status_code, 200)
         channel_id = response.json()['id']
-        entries_count = Entry.objects.filter(channel_id=channel_id).count()
+        channel = Channel.objects.get(id=channel_id)
+        entries_count = channel.entries.count()
         self.assertEqual(entries_count, 103)
+        self.assertIsNotNone(channel.last_update)
 
 
 class EntryViewSetTestCase(APITestCase):
